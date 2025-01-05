@@ -55,38 +55,47 @@ const AddProduct = () => {
       alert("Please select an image file.");
       return;
     }
-
+  
     if (!productData.name || !productData.new_price || !productData.category) {
       alert("Please fill in all required fields.");
       return;
     }
-
+  
     const formData = new FormData();
     formData.append("product", imageFile);
-
+  
+    // Add an id to associate the image with the product
+    const tempId = Date.now().toString(); // Temporary unique ID (can be replaced by UUID)
+    formData.append("id", tempId);
+  
     try {
       // Image upload
       const uploadResponse = await fetch(`${import.meta.env.VITE_API_URL}/upload`, {
         method: "POST",
-        body: formData,
+        body: formData, // Do NOT set Content-Type manually
       });
-
+  
       if (!uploadResponse.ok) {
-        console.error("Upload error:", await uploadResponse.text());
-        alert("Image upload failed. Please try again.");
+        const errorText = await uploadResponse.text();
+        console.error("Upload error:", errorText);
+        alert(`Image upload failed: ${errorText}`);
         return;
       }
-
+  
       const uploadResult = await uploadResponse.json();
-
+  
       if (!uploadResult.success) {
-        alert("Image upload failed.");
+        alert(`Image upload failed: ${uploadResult.message}`);
         return;
       }
-
+  
       // Adding product
-      const newProduct = { ...productData, image: uploadResult.image_url };
-
+      const newProduct = {
+        ...productData,
+        id: tempId, // Pass the same ID to associate the image and product
+        image: uploadResult.image_url,
+      };
+  
       const addProductResponse = await fetch(
         `${import.meta.env.VITE_API_URL}/addproduct`,
         {
@@ -95,26 +104,28 @@ const AddProduct = () => {
           body: JSON.stringify(newProduct),
         }
       );
-
+  
       if (!addProductResponse.ok) {
-        console.error("Add product error:", await addProductResponse.text());
-        alert("Failed to add product. Please try again.");
+        const errorText = await addProductResponse.text();
+        console.error("Add product error:", errorText);
+        alert(`Failed to add product: ${errorText}`);
         return;
       }
-
+  
       const addResult = await addProductResponse.json();
-
+  
       if (addResult.success) {
         alert("Product added successfully");
         resetForm(); // Clear all inputs
       } else {
-        alert("Failed to add product");
+        alert(`Failed to add product: ${addResult.message}`);
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("An unexpected error occurred.");
+      alert("An unexpected error occurred. Please check the console for details.");
     }
   };
+  
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white border border-gray-200 rounded-lg shadow-md">
