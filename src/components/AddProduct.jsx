@@ -64,15 +64,11 @@ const AddProduct = () => {
     const formData = new FormData();
     formData.append("product", imageFile);
   
-    // Add an id to associate the image with the product
-    const tempId = Date.now().toString(); // Temporary unique ID (can be replaced by UUID)
-    formData.append("id", tempId);
-  
     try {
       // Image upload
       const uploadResponse = await fetch(`${import.meta.env.VITE_API_URL}/upload`, {
         method: "POST",
-        body: formData, // Do NOT set Content-Type manually
+        body: formData, 
       });
   
       if (!uploadResponse.ok) {
@@ -88,13 +84,6 @@ const AddProduct = () => {
         alert(`Image upload failed: ${uploadResult.message}`);
         return;
       }
-  
-      // Adding product
-      const newProduct = {
-        ...productData,
-        id: tempId, // Pass the same ID to associate the image and product
-        image: uploadResult.image_url,
-      };
   
       const addProductResponse = await fetch(
         `${import.meta.env.VITE_API_URL}/addproduct`,
