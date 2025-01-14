@@ -90,9 +90,13 @@ const AddProduct = () => {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(newProduct),
+          body: JSON.stringify({
+            ...productData,
+            image: uploadResult.url, // Include the uploaded image URL
+          }),
         }
       );
+      
   
       if (!addProductResponse.ok) {
         const errorText = await addProductResponse.text();
