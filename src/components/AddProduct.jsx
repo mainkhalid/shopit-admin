@@ -50,65 +50,71 @@ const AddProduct = () => {
     });
   };
 
-  //handleAddProduct
-async function handleAddProduct() {
-  const name = document.getElementById("name").value;
-  const category = document.getElementById("category").value;
-  const features = document.getElementById("features").value.split(",").map(f => f.trim());
-  const newPrice = document.getElementById("new_price").value;
-  const oldPrice = document.getElementById("old_price").value;
-  const imageFile = document.getElementById("product_image").files[0];
+  const handleAddProduct = async () => {
+    if (!imageFile) {
+      alert("Please select an image file.");
+      return;
+    }
 
-  // Validate Form Fields
-  if (!name || !category || !newPrice || !imageFile) {
-    alert("Please fill all required fields and upload an image.");
-    return;
-  }
+    if (!productData.name || !productData.new_price || !productData.category) {
+      alert("Please fill in all required fields.");
+      return;
+    }
 
-  try {
-    // Step 1: Upload Image
     const formData = new FormData();
     formData.append("product", imageFile);
-    
-    const uploadResponse = await fetch(`${import.meta.env.VITE_API_URL}/upload`, {
-      method: "POST",
-      body: formData,
-    });
-    
-    if (!uploadResponse.ok) {
-      throw new Error("Failed to upload image");
+
+    try {
+      // Image upload
+      const uploadResponse = await fetch(`${import.meta.env.VITE_API_URL}/upload`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        console.error("Upload error:", await uploadResponse.text());
+        alert("Image upload failed. Please try again.");
+        return;
+      }
+
+      const uploadResult = await uploadResponse.json();
+
+      if (!uploadResult.success) {
+        alert("Image upload failed.");
+        return;
+      }
+
+      // Adding product
+      const newProduct = { ...productData, image: uploadResult.image_url };
+
+      const addProductResponse = await fetch(
+        `${import.meta.env.VITE_API_URL}/addproduct`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newProduct),
+        }
+      );
+
+      if (!addProductResponse.ok) {
+        console.error("Add product error:", await addProductResponse.text());
+        alert("Failed to add product. Please try again.");
+        return;
+      }
+
+      const addResult = await addProductResponse.json();
+
+      if (addResult.success) {
+        alert("Product added successfully");
+        resetForm(); // Clear all inputs
+      } else {
+        alert("Failed to add product");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("An unexpected error occurred.");
     }
-    const { imgUrl } = await uploadResponse.json();
-
-    // Step 2: Add Product
-    const productData = {
-      name,
-      category,
-      features,
-      new_price: parseFloat(newPrice),
-      old_price: parseFloat(oldPrice) || 0,
-      imgUrl,
-    };
-
-    const addResponse = await fetch(`${import.meta.env.VITE_API_URL}/addproduct`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(productData),
-    });
-
-    if (!addResponse.ok) {
-      const errorData = await addResponse.json();
-      throw new Error(errorData.error || "Failed to add product");
-    }
-
-    alert("Product added successfully!");
-  } catch (err) {
-    console.error(err);
-    alert(err.message);
-  }
-}
-
-  
+  };
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white border border-gray-200 rounded-lg shadow-md">
