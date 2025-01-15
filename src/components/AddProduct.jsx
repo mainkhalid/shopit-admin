@@ -13,19 +13,6 @@ const AddProduct = () => {
     features: [], // New field for features
   });
 
-  const resetForm = () => {
-    setImageFile(null);
-    setNewFeature("");
-    setProductData({
-      name: "",
-      image: "",
-      category: "ex-uk",
-      new_price: "",
-      old_price: "",
-      features: [],
-    });
-  };
-
   const handleInputChange = useCallback(
     (e) => setProductData({ ...productData, [e.target.name]: e.target.value }),
     [productData]
@@ -103,13 +90,7 @@ const AddProduct = () => {
       }
 
       const addResult = await addProductResponse.json();
-
-      if (addResult.success) {
-        alert("Product added successfully");
-        resetForm(); // Clear all inputs
-      } else {
-        alert("Failed to add product");
-      }
+      alert(addResult.success ? "Product added successfully" : "Failed to add product");
     } catch (error) {
       console.error("Error:", error);
       alert("An unexpected error occurred.");
@@ -175,8 +156,7 @@ const AddProduct = () => {
         >
           <option value="ex-uk">Ex-UK</option>
           <option value="new">New</option>
-          <option value="student">Student</option>
-          <option value="phones">phones</option>
+          <option value="phone">phone</option>
           <option value="accessories">accessories</option>
         </select>
       </div>
