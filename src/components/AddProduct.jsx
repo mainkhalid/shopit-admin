@@ -42,38 +42,38 @@ const AddProduct = () => {
       alert("Please select an image file.");
       return;
     }
-
+  
     if (!productData.name || !productData.new_price || !productData.category) {
       alert("Please fill in all required fields.");
       return;
     }
-
+  
     const formData = new FormData();
     formData.append("product", imageFile);
-
+  
     try {
       // Image upload
       const uploadResponse = await fetch(`${import.meta.env.VITE_API_URL}/upload`, {
         method: "POST",
         body: formData,
       });
-
+  
       if (!uploadResponse.ok) {
         console.error("Upload error:", await uploadResponse.text());
         alert("Image upload failed. Please try again.");
         return;
       }
-
+  
       const uploadResult = await uploadResponse.json();
-
+  
       if (!uploadResult.success) {
         alert("Image upload failed.");
         return;
       }
-
+  
       // Adding product
       const newProduct = { ...productData, image: uploadResult.image_url };
-
+  
       const addProductResponse = await fetch(
         `${import.meta.env.VITE_API_URL}/addproduct`,
         {
@@ -82,20 +82,38 @@ const AddProduct = () => {
           body: JSON.stringify(newProduct),
         }
       );
-
+  
       if (!addProductResponse.ok) {
         console.error("Add product error:", await addProductResponse.text());
         alert("Failed to add product. Please try again.");
         return;
       }
-
+  
       const addResult = await addProductResponse.json();
-      alert(addResult.success ? "Product added successfully" : "Failed to add product");
+  
+      if (addResult.success) {
+        alert("Product added successfully");
+  
+        // Reset states to clear the form
+        setProductData({
+          name: "",
+          image: "",
+          category: "ex-uk",
+          new_price: "",
+          old_price: "",
+          features: [],
+        });
+        setImageFile(null);
+        setNewFeature("");
+      } else {
+        alert("Failed to add product");
+      }
     } catch (error) {
       console.error("Error:", error);
       alert("An unexpected error occurred.");
     }
   };
+  
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white border border-gray-200 rounded-lg shadow-md">
